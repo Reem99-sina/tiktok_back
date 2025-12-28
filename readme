@@ -1,0 +1,220 @@
+# 🎬 TikTok Backend API (Node.js + Express + MongoDB)
+
+A backend REST API for a TikTok-like application built with **Node.js**, **Express**, **MongoDB (Mongoose)**, and **JWT authentication**. The project supports user authentication, video posts, likes, comments, file uploads, and pagination.
+
+---
+
+## 🚀 Tech Stack
+
+* **Node.js**
+* **Express.js**
+* **MongoDB + Mongoose**
+* **JWT** for authentication
+* **bcrypt** for password hashing
+* **multer** for file uploads (avatars & videos)
+* **Joi** for request validation
+
+---
+
+## 📁 Project Structure
+
+```
+├── app.js
+├── connect.js
+├── .env
+├── models/
+│   ├── User.js
+│   ├── Post.js
+│   ├── Like.js
+│   └── Comment.js
+├── users/
+│   ├── users.router.js
+│   ├── users.service.js
+│   └── users.validation.js
+├── posts/
+│   ├── posts.router.js
+│   ├── posts.service.js
+│   └── posts.validation.js
+├── Middleware/
+│   ├── auth.js
+│   └── validation.js
+├── utils/
+│   └── multer.js
+├── uploads/
+│   ├── avatars/
+│   └── video/
+```
+
+---
+
+## 🔐 Authentication
+
+### Register
+
+```
+POST /users/register
+```
+
+* Create new user
+* Hash password using bcrypt
+* Optional avatar upload
+* Following another users
+
+### Login
+
+```
+POST /users/login
+```
+
+* Email + password
+* Returns JWT token
+
+### Get User by Token
+
+```
+GET /user/
+```
+
+* Requires Authorization header
+
+---
+
+## 👤 User Model
+
+* username
+* email (unique)
+* password (hashed)
+* avatar
+* followers / following
+
+---
+
+## 🎥 Posts
+
+### Create Post
+
+```
+POST /posts
+```
+
+* Auth required
+* Upload video (mp4, mov, etc.)
+* Optional caption
+
+### Get All Posts (Feed)
+
+```
+GET /post?page=1&limit=10
+```
+
+* Pagination (skip + limit)
+* Populate user, likes, comments
+
+### Get Posts by User
+
+```
+GET /post/own?page=1&limit=10
+```
+
+### Delete Post
+
+```
+DELETE /post/:id
+```
+
+* Only post owner can delete
+
+---
+
+## ❤️ Likes
+
+### Toggle Like
+
+```
+POST /like/
+```
+
+* If like exists → remove
+* If not → add like
+
+---
+
+## 💬 Comments
+
+### Add Comment
+
+```
+POST /comment/
+```
+
+## 📦 Models Overview
+
+### Post
+
+* userId (ref User)
+* videoUrl
+* caption
+* likes [Like]
+* comments [Comment]
+
+### Like
+
+* userId
+* postId
+
+### Comment
+
+* userId
+* postId
+* text
+
+---
+
+## 📤 File Uploads
+
+* **Avatar upload** → `/uploads/picture`
+* **Video upload** → `/uploads/video`
+* File type validation
+* File size limit (configurable)
+
+---
+
+## ✅ Validation
+
+* Joi used for:
+
+  * Register
+  * Login
+  * Create post
+  * Delete post
+  * Like / Comment
+
+---
+
+## ⚙️ Environment Variables
+
+```
+PORT=1200
+MONGO_URL=mongodb+srv://reemebrahim:A6dg7ia4%40@cluster0.qszet85.mongodb.net/tiktok
+JWT_SECRET=welcome
+```
+
+---
+
+## 🛡️ Security Features
+
+* JWT authentication middleware
+* Password hashing
+* Protected routes
+* File type & size validation
+
+---
+
+## 📈 Pagination
+
+* Supports `page & limit`
+* Supports `skip & limit`
+* Optimized for infinite scroll
+
+---
+
