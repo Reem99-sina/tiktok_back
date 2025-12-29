@@ -1,6 +1,6 @@
 const express = require("express");
 const http = require("http");
-
+const serverless = require("serverless-http");
 const { connectdb } = require("./connect");
 const userRouter = require("./users/users.router");
 const postsRouter = require("./posts/posts.router");
@@ -20,7 +20,8 @@ app.use("/post", postsRouter);
 
 connectdb();
 
-const server = http.createServer(app);
+// const server = http.createServer(app);
 
-const PORT = process.env.PORT || 1200;
-server.listen(PORT, () => console.log(`Server listening on ${PORT}`));
+// const PORT = process.env.PORT || 1200;
+// server.listen(PORT, () => console.log(`Server listening on ${PORT}`));
+module.exports.handler = serverless(app);
