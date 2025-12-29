@@ -20,8 +20,8 @@ app.use("/post", postsRouter);
 
 connectdb();
 
-const server = http.createServer(app);
+// const server = http.createServer(app);
 
 const PORT = process.env.PORT || 1200;
 app.listen(PORT, () => console.log(`Server listening on ${PORT}`));
-module.exports.handler = serverless(app);
+// module.exports.handler = serverless(app);
