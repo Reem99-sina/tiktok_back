@@ -76,7 +76,8 @@ exports.login = async (req, res) => {
         to: email,
         code,
       });
-      return res.error("Please confirm your email first", null, 400);
+      
+      return res.status(404).json({ message: "Please confirm your email first" })
     }
     // Generate JWT token
     const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET, {
@@ -146,44 +147,46 @@ exports.confirmByCodeReq = async (req, res) => {
     const { email, code } = req.body;
 
     if (!email || !code) {
-      return res.error("Email and code are required", null, 400);
+      return res.status(400).json({ message: "Email and code are required" });
     }
 
     const user = await User.findOne({ email });
 
     if (!user) {
-      return res.error("User not found", null, 404);
+      return res.status(404).json({ message: "User not found" });
     }
 
     if (!user.code || !user.verificationCodeExpires) {
-      return res.error("No verification code found", null, 400);
+      return res.status(400).json({ message: "No verification code found" });
     }
 
     if (Date.now() > user.verificationCodeExpires) {
-      return res.error("Verification code expired", null, 400);
+      return res.status(400).json({ message: "Verification code expired" });
     }
 
     const isValidCode = await bcrypt.compare(code, user.code);
 
     if (!isValidCode) {
-      return res.error("Invalid verification code", null, 400);
+      return res.status(400).json({ message: "Invalid verification code" });
     }
 
-    await User.findByIdAndUpdate(
-      user._id,
-      {
-        confirmed: true,
-        $unset: {
-          code: "",
-          verificationCodeExpires: "",
-        },
+    await User.findByIdAndUpdate(user._id, {
+      confirmed: true,
+      $unset: {
+        code: "",
+        verificationCodeExpires: "",
       },
-      { new: true },
-    );
+    });
 
-    return res.success("Email confirmed successfully");
+    return res.status(200).json({
+      message: "Email confirmed successfully",
+    });
+
   } catch (error) {
-    return res.error("Internal server error", error.message, 500);
+    return res.status(500).json({
+      message: "Internal server error",
+      error: error.message,
+    });
   }
 };
 
@@ -192,7 +195,8 @@ exports.sendVerifyEmail = async (req, res) => {
     const { email } = req.body;
 
     const user = await User.findOne({ email }).select("_id username");
-    if (!user) return res.error("User not found", null, 404);
+    
+    if (!user) return res.status(404).json({ message: "User not foundr" });
 
     const code = generateCode();
     const hashedCode = await bcrypt.hash(code, 10);
@@ -215,9 +219,10 @@ exports.sendVerifyEmail = async (req, res) => {
         to: email,
         code,
       });
-
-    return res.success("Verification code resent successfully");
+ 
+    return res.status(200).json({ message: "Verification code resent successfully" });
   } catch (error) {
-    return res.error("Internal server error", error.message, 500);
+    
+    return res.status(500).json({ message: "Internal server error" });
   }
 };
