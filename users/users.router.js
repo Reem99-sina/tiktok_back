@@ -37,7 +37,7 @@ router.post(
 router.post("/confirm-code", validate(confirmByCode), confirmByCodeReq);
 router.post(
   "/resend-code",
-  validate(resendCode),
+  validation(resendCode),
   sendVerifyEmail
 );
 module.exports = router;
