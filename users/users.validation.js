@@ -68,3 +68,16 @@ module.exports.confirmByCode = {
         }),
     }),
 };
+
+module.exports.resendCode = {
+  body: joi
+    .object()
+    .required()
+    .keys({
+      email: joi.string().email().required().messages({
+        "string.empty": "Email is required",
+        "string.email": "Email must be a valid email",
+        "any.required": "Email is required",
+      }),
+    }),
+};

@@ -8,12 +8,14 @@ const {
   getUser,
   toggleFollow,
   confirmByCodeReq,
+  sendVerifyEmail,
 } = require("./users.service");
 const {
   loginValidation,
   postUservalidation,
   followValidation,
   confirmByCode,
+  resendCode,
 } = require("./users.validation");
 
 router.post(
@@ -33,4 +35,9 @@ router.post(
   toggleFollow,
 );
 router.post("/confirm-code", validate(confirmByCode), confirmByCodeReq);
+router.post(
+  "/resend-code",
+  validate(resendCode),
+  sendVerifyEmail
+);
 module.exports = router;

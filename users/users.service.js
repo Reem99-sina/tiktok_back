@@ -187,3 +187,39 @@ exports.confirmByCodeReq = async (req, res) => {
     return res.error("Internal server error", error.message, 500);
   }
 };
+
+exports.sendVerifyEmail = async (req, res) => {
+  try {
+    const { email } = req.body;
+
+    const user = await User.findOne({ email }).select("_id username");
+    if (!user) return res.error("User not found", null, 404);
+
+    const code = generateCode();
+    const hashedCode = await bcrypt.hash(code, 10);
+
+    await User.findByIdAndUpdate(user._id, {
+      $set: {
+        code: hashedCode,
+        verificationCodeExpires: Date.now() + 10 * 60 * 1000,
+      },
+    });
+
+    const message = `
+      <h3>Email Verification</h3>
+      <p>Your new verification code is:</p>
+      <h2>${code}</h2>
+      <p>This code expires in 10 minutes.</p>
+    `;
+
+    await sendEmail.sendConfirmationEmail({
+      to: email,
+      name: user?.username,
+      link: message,
+    });
+
+    return res.success("Verification code resent successfully");
+  } catch (error) {
+    return res.error("Internal server error", error.message, 500);
+  }
+};
