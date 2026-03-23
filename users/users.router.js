@@ -34,7 +34,7 @@ router.post(
   validation(followValidation),
   toggleFollow,
 );
-router.post("/confirm-code", validate(confirmByCode), confirmByCodeReq);
+router.post("/confirm-code", validation(confirmByCode), confirmByCodeReq);
 router.post(
   "/resend-code",
   validation(resendCode),
