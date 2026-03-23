@@ -1,6 +1,8 @@
 // models/User.js
 const mongoose = require("mongoose");
 const bcrypt = require("bcrypt");
+const { generateCode } = require("../utils/common");
+const sendEmail = require("../utils/sendEmail");
 
 const userSchema = new mongoose.Schema(
   {
@@ -26,7 +28,7 @@ userSchema.pre("save", async function () {
   const salt = await bcrypt.genSalt(10);
   this.password = await bcrypt.hash(this.password, salt);
   await sendEmail.sendCodeEmail({
-    to: email,
+    to: this.email,
     code,
   });
   this.code = hashedCode;
