@@ -1,5 +1,7 @@
 const nodemailer = require("nodemailer");
+const { Resend } = require('resend');
 require('dotenv').config()
+const resend = new Resend(process.env.RESEND_API_KEY);
 
 const transporter = nodemailer.createTransport({
   service: "gmail",
@@ -13,14 +15,24 @@ const transporter = nodemailer.createTransport({
    Confirm Email
 ================================ */
 const sendConfirmationEmail = async ({ to, name, link }) => {
-  return transporter.sendMail({
-    from: `"My App" <${process.env.EMAIL_USER}>`,
+  // return transporter.sendMail({
+  //   from: `"My App" <${process.env.EMAIL_USER}>`,
+  //   to,
+  //   subject: "Verify your email",
+  //   html: `
+  //     <h3>Hello ${name}</h3>
+  //     <p>Please Verify your email by clicking the link below:</p>
+  //     ${link}
+  //   `,
+  // });
+  return await resend.emails.send({
+    from: 'onboarding@resend.dev',
     to,
     subject: "Verify your email",
     html: `
       <h3>Hello ${name}</h3>
-      <p>Please Verify your email by clicking the link below:</p>
-      ${link}
+      <p>Please verify your email:</p>
+      <a href="${link}">Verify</a>
     `,
   });
 };
@@ -29,11 +41,17 @@ const sendConfirmationEmail = async ({ to, name, link }) => {
    Code Email (OTP)
 ================================ */
 const sendCodeEmail = async ({ to, code }) => {
-  return transporter.sendMail({
-    from: `"My App" <${process.env.EMAIL_USER}>`,
+  // return transporter.sendMail({
+  //   from: `"My App" <${process.env.EMAIL_USER}>`,
+  //   to,
+  //   subject: "Your verification code",
+  //   html: `<h3>Your code is: ${code}</h3>`,
+  // });
+  return await resend.emails.send({
+    from: 'onboarding@resend.dev',
     to,
     subject: "Your verification code",
-    html: `<h3>Your code is: ${code}</h3>`,
+    html: `<h3>Your code is: ${code}</h3> <p>This code expires in 10 minutes.</p>`,
   });
 };
 

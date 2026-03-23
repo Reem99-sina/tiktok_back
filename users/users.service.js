@@ -2,7 +2,7 @@ const User = require("../models/user.schema");
 const jwt = require("jsonwebtoken");
 const sendEmail = require("../utils/sendEmail");
 const { generateCode } = require("../utils/common");
-const bcrypt = require('bcrypt');
+const bcrypt = require("bcrypt");
 
 exports.register = async (req, res) => {
   try {
@@ -32,10 +32,9 @@ exports.register = async (req, res) => {
       <p>This code expires in 10 minutes.</p>
     `;
 
-    await sendEmail.sendConfirmationEmail({
+    await sendEmail.sendCodeEmail({
       to: email,
-      name: `${username}`,
-      link: message,
+      code,
     });
     res.status(201).json({ message: "User registered successfully" });
   } catch (err) {
@@ -73,10 +72,9 @@ exports.login = async (req, res) => {
       <p>This code expires in 10 minutes.</p>
     `;
 
-      await sendEmail.sendConfirmationEmail({
+      await sendEmail.sendCodeEmail({
         to: email,
-        name: `${user.username}`,
-        link: message,
+        code,
       });
       return res.error("Please confirm your email first", null, 400);
     }
@@ -213,11 +211,10 @@ exports.sendVerifyEmail = async (req, res) => {
       <p>This code expires in 10 minutes.</p>
     `;
 
-    await sendEmail.sendConfirmationEmail({
-      to: email,
-      name: user?.username,
-      link: message,
-    });
+    await sendEmail.sendCodeEmail({
+        to: email,
+        code,
+      });
 
     return res.success("Verification code resent successfully");
   } catch (error) {
