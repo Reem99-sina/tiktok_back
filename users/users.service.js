@@ -1,10 +1,13 @@
 const User = require("../models/user.schema");
 const jwt = require("jsonwebtoken");
+const sendEmail = require("../utils/sendEmail");
+const { generateCode } = require("../utils/common");
 
 exports.register = async (req, res) => {
   try {
     const { username, email, password } = req.body;
-
+    const code = generateCode();
+    const hashedCode = await bcrypt.hash(code, 10);
     if (!req.imagevalidtype && !req.file) {
       return res.status(400).json({ message: "Invalid file type" });
     }
@@ -17,9 +20,22 @@ exports.register = async (req, res) => {
       email,
       password,
       avatar: req?.destination + "/" + req?.file?.filename,
+      code: hashedCode,
+      verificationCodeExpires: Date.now() + 10 * 60 * 1000,
     });
     await newUser.save();
+    const message = `
+      <h3>Email Verification</h3>
+      <p>Your verification code is:</p>
+      <h2>${code}</h2>
+      <p>This code expires in 10 minutes.</p>
+    `;
 
+    await sendEmail.sendConfirmationEmail({
+      to: email,
+      name: `${username}`,
+      link: message,
+    });
     res.status(201).json({ message: "User registered successfully" });
   } catch (err) {
     res.status(500).json({ message: "Server error", error: err.message });
@@ -38,7 +54,31 @@ exports.login = async (req, res) => {
     const isMatch = await user.comparePassword(password);
     if (!isMatch)
       return res.status(400).json({ message: "Invalid credentials" });
+    if (!user.confirmed) {
+      const code = generateCode();
+      const hashedCode = await bcrypt.hash(code, 10);
+      await userModel.findOneAndUpdate(
+        { email },
+        {
+          code: hashedCode,
+          verificationCodeExpires: Date.now() + 10 * 60 * 1000, // 10 minutes
+        },
+        { new: true },
+      );
+      const message = `
+      <h3>Email Verification</h3>
+      <p>Your verification code is:</p>
+      <h2>${code}</h2>
+      <p>This code expires in 10 minutes.</p>
+    `;
 
+      await sendEmail.sendConfirmationEmail({
+        to: email,
+        name: `${user.username}`,
+        link: message,
+      });
+      return res.error("Please confirm your email first", null, 400);
+    }
     // Generate JWT token
     const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET, {
       expiresIn: "1d",
@@ -99,5 +139,51 @@ exports.toggleFollow = async (req, res) => {
     });
   } catch (error) {
     res.status(500).json({ message: error.message });
+  }
+};
+
+exports.confirmByCodeReq = async (req, res) => {
+  try {
+    const { email, code } = req.body;
+
+    if (!email || !code) {
+      return res.error("Email and code are required", null, 400);
+    }
+
+    const user = await User.findOne({ email });
+
+    if (!user) {
+      return res.error("User not found", null, 404);
+    }
+
+    if (!user.code || !user.verificationCodeExpires) {
+      return res.error("No verification code found", null, 400);
+    }
+
+    if (Date.now() > user.verificationCodeExpires) {
+      return res.error("Verification code expired", null, 400);
+    }
+
+    const isValidCode = await bcrypt.compare(code, user.code);
+
+    if (!isValidCode) {
+      return res.error("Invalid verification code", null, 400);
+    }
+
+    await User.findByIdAndUpdate(
+      user._id,
+      {
+        confirmed: true,
+        $unset: {
+          code: "",
+          verificationCodeExpires: "",
+        },
+      },
+      { new: true },
+    );
+
+    return res.success("Email confirmed successfully");
+  } catch (error) {
+    return res.error("Internal server error", error.message, 500);
   }
 };

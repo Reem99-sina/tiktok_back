@@ -2,8 +2,19 @@ const router = require("express").Router();
 const { auth } = require("../Middleware/auth");
 const { validation } = require("../Middleware/validation");
 const uploadAvatar = require("../utils/multer");
-const { register, login, getUser, toggleFollow } = require("./users.service");
-const { loginValidation, postUservalidation, followValidation } = require("./users.validation");
+const {
+  register,
+  login,
+  getUser,
+  toggleFollow,
+  confirmByCodeReq,
+} = require("./users.service");
+const {
+  loginValidation,
+  postUservalidation,
+  followValidation,
+  confirmByCode,
+} = require("./users.validation");
 
 router.post(
   "/register",
@@ -11,7 +22,7 @@ router.post(
     .myMulter("/picture", uploadAvatar.filetype.Image)
     .single("avatar"),
   validation(postUservalidation),
-  register
+  register,
 );
 router.post("/login", validation(loginValidation), login);
 router.get("/", auth(), getUser);
@@ -19,7 +30,7 @@ router.post(
   "/follow/:userId",
   auth(),
   validation(followValidation),
-  toggleFollow
+  toggleFollow,
 );
-
+router.post("/confirm-code", validate(confirmByCode), confirmByCodeReq);
 module.exports = router;

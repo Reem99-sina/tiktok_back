@@ -14,6 +14,11 @@ const userSchema = new mongoose.Schema(
       { type: mongoose.Schema.Types.ObjectId, ref: "User" }
     ],
     password: { type: String, required: true }, // hash in production
+    code: String,
+    verificationCodeExpires: {
+      type: Date,
+    },
+    confirmed: { type: Boolean, default: false },
   },
   { timestamps: true }
 );

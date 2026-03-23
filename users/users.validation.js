@@ -43,3 +43,28 @@ module.exports.followValidation = {
     userId: joi.string().required(),
   }),
 };
+
+module.exports.confirmByCode = {
+  body: joi
+    .object()
+    .required()
+    .keys({
+      email: joi.string().email().required().messages({
+        "string.empty": "Email is required",
+        "string.email": "Email must be a valid email",
+        "any.required": "Email is required",
+      }),
+
+      code: joi
+        .string()
+        .length(4)
+        .pattern(/^[0-9]+$/)
+        .required()
+        .messages({
+          "string.empty": "Verification code is required",
+          "string.length": "Verification code must be 4 digits",
+          "string.pattern.base": "Verification code must contain only numbers",
+          "any.required": "Verification code is required",
+        }),
+    }),
+};

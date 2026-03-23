@@ -1,40 +1,43 @@
-const nodeoutlook = require("nodejs-nodemailer-outlook");
-const nodemailer=require("nodemailer")
-async function sendEmail(dest, message) {
-  nodeoutlook.sendEmail({
-    auth: {
-      user: "reemsina1@outlook.com",
-      pass: "a6dg7ia4",
-    },
-    from: "reemsina1@outlook.com",
-    to: dest,
-    subject: "Hey you, awesome!",
-    html: message,
-    text: "This is text version!",
-    replyTo: "receiverXXX@gmail.com",
-    onError: (e) => console.log(e),
-    onSuccess: (i) => console.log(i),
-  });
-}
+const nodemailer = require("nodemailer");
+require('dotenv').config()
 
 const transporter = nodemailer.createTransport({
-  host: "smtp.office365.com",
-  port: 587,
-  secure: false,
+  service: "gmail",
   auth: {
-    user: "reemsina23@outlook.com",
-    pass: "a6dg7ia4",
+    user: process.env.EMAIL_USER, // reemsina2@gmail.com
+    pass: 'lhid gzgm wqrd tiih', // app password
   },
 });
 
-async function sendSmsEmail(phoneNumber, carrierGateway, message) {
-  const to = `${phoneNumber}@${carrierGateway}`;
-  await transporter.sendMail({
-    from: "reemsina23@outlook.com",
+/* ===============================
+   Confirm Email
+================================ */
+const sendConfirmationEmail = async ({ to, name, link }) => {
+  return transporter.sendMail({
+    from: `"My App" <${process.env.EMAIL_USER}>`,
     to,
-    subject: "", // SMS ignores subject
-    text: message,
+    subject: "Verify your email",
+    html: `
+      <h3>Hello ${name}</h3>
+      <p>Please Verify your email by clicking the link below:</p>
+      ${link}
+    `,
   });
-  console.log(`Message sent to ${phoneNumber} via email-to-SMS`);
-}
-module.exports = {sendEmail, sendSmsEmail};
+};
+
+/* ===============================
+   Code Email (OTP)
+================================ */
+const sendCodeEmail = async ({ to, code }) => {
+  return transporter.sendMail({
+    from: `"My App" <${process.env.EMAIL_USER}>`,
+    to,
+    subject: "Your verification code",
+    html: `<h3>Your code is: ${code}</h3>`,
+  });
+};
+
+module.exports = {
+  sendConfirmationEmail,
+  sendCodeEmail,
+};
