@@ -6,11 +6,13 @@ const userRouter = require("./users/users.router");
 const postsRouter = require("./posts/posts.router");
 const likesRouter = require("./likes/likes.router");
 const commentsRouter = require("./comments/comment.router");
+const cors=require("cors")
 
 require("dotenv").config();
 
 const app = express();
 app.use(express.json());
+app.use(cors())
 app.use("/user", userRouter);
 app.use("/like", likesRouter);
 app.use("/comment", commentsRouter);

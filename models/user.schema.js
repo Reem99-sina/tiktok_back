@@ -1,18 +1,14 @@
 // models/User.js
 const mongoose = require("mongoose");
-const bcrypt = require('bcrypt');
+const bcrypt = require("bcrypt");
 
 const userSchema = new mongoose.Schema(
   {
     username: { type: String, required: true },
     email: { type: String, required: true, unique: true },
     avatar: { type: String, default: "" },
-     followers: [
-      { type: mongoose.Schema.Types.ObjectId, ref: "User" }
-    ],
-    following: [
-      { type: mongoose.Schema.Types.ObjectId, ref: "User" }
-    ],
+    followers: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
+    following: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
     password: { type: String, required: true }, // hash in production
     code: String,
     verificationCodeExpires: {
@@ -20,14 +16,21 @@ const userSchema = new mongoose.Schema(
     },
     confirmed: { type: Boolean, default: false },
   },
-  { timestamps: true }
+  { timestamps: true },
 );
 
 userSchema.pre("save", async function () {
   if (!this.isModified("password")) return;
-
+  const code = generateCode();
+  const hashedCode = await bcrypt.hash(code, 10);
   const salt = await bcrypt.genSalt(10);
   this.password = await bcrypt.hash(this.password, salt);
+  await sendEmail.sendCodeEmail({
+    to: email,
+    code,
+  });
+  this.code = hashedCode;
+  this.verificationCodeExpires = Date.now() + 10 * 60 * 1000;
 });
 
 // Method to compare password

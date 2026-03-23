@@ -7,8 +7,7 @@ const bcrypt = require("bcrypt");
 exports.register = async (req, res) => {
   try {
     const { username, email, password } = req.body;
-    const code = generateCode();
-    const hashedCode = await bcrypt.hash(code, 10);
+
     if (!req.imagevalidtype && !req.file) {
       return res.status(400).json({ message: "Invalid file type" });
     }
@@ -21,21 +20,10 @@ exports.register = async (req, res) => {
       email,
       password,
       avatar: req?.destination + "/" + req?.file?.filename,
-      code: hashedCode,
-      verificationCodeExpires: Date.now() + 10 * 60 * 1000,
+
     });
     await newUser.save();
-    const message = `
-      <h3>Email Verification</h3>
-      <p>Your verification code is:</p>
-      <h2>${code}</h2>
-      <p>This code expires in 10 minutes.</p>
-    `;
-
-    await sendEmail.sendCodeEmail({
-      to: email,
-      code,
-    });
+    
     res.status(201).json({ message: "User registered successfully" });
   } catch (err) {
     res.status(500).json({ message: "Server error", error: err.message });
