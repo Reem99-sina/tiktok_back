@@ -57,6 +57,7 @@ exports.login = async (req, res) => {
 exports.getUser = async (req, res) => {
   try {
     // req.user is added by verifyToken middleware
+    console.log(req.user,'req.user')
     const user = await User.findById(req.user?._id)
       .populate("followers", "username avatar") // populate followers
       .populate("following", "username avatar"); // populate following

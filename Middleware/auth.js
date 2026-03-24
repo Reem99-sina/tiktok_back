@@ -5,11 +5,12 @@ module.exports.auth = () => {
   return async (req, res, next) => {
     try {
       const headerToken = req?.headers["authorization"];
-      console.log(process.env.Bearer, "process.env.Bearer");
+      
       if (!headerToken?.startsWith(`${process.env.Bearer} `) || !headerToken) {
         res.status(400).json({ message: "in valid header token" });
       } else {
-        const token = headerToken?.split(" ")[1];
+        
+        const token = headerToken.split(" ")[2];
         if (!token) {
           res.status(400).json({ message: "no token there" });
         } else {
