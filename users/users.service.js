@@ -42,31 +42,7 @@ exports.login = async (req, res) => {
     const isMatch = await user.comparePassword(password);
     if (!isMatch)
       return res.status(400).json({ message: "Invalid credentials" });
-    if (!user.confirmed) {
-      const code = generateCode();
-      const hashedCode = await bcrypt.hash(code, 10);
-      await userModel.findOneAndUpdate(
-        { email },
-        {
-          code: hashedCode,
-          verificationCodeExpires: Date.now() + 10 * 60 * 1000, // 10 minutes
-        },
-        { new: true },
-      );
-      const message = `
-      <h3>Email Verification</h3>
-      <p>Your verification code is:</p>
-      <h2>${code}</h2>
-      <p>This code expires in 10 minutes.</p>
-    `;
-
-      await sendEmail.sendCodeEmail({
-        to: email,
-        code,
-      });
-      
-      return res.status(404).json({ message: "Please confirm your email first" })
-    }
+   
     // Generate JWT token
     const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET, {
       expiresIn: "1d",
