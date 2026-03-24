@@ -17,6 +17,8 @@ app.use(express.json());
 app.use(cors())
 app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 app.use("/uploads/picture", express.static("./uploads/picture"));
+app.use("/uploads/videos", express.static("./uploads/video"));
+
 app.use("/user", userRouter);
 app.use("/like", likesRouter);
 app.use("/comment", commentsRouter);
