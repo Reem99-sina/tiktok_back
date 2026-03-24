@@ -12,27 +12,27 @@ const userSchema = new mongoose.Schema(
     followers: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
     following: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
     password: { type: String, required: true }, // hash in production
-    code: String,
-    verificationCodeExpires: {
-      type: Date,
-    },
-    confirmed: { type: Boolean, default: false },
+    // code: String,
+    // verificationCodeExpires: {
+    //   type: Date,
+    // },
+    // confirmed: { type: Boolean, default: false },
   },
   { timestamps: true },
 );
 
 userSchema.pre("save", async function () {
   if (!this.isModified("password")) return;
-  const code = generateCode();
-  const hashedCode = await bcrypt.hash(code, 10);
+  // const code = generateCode();
+  // const hashedCode = await bcrypt.hash(code, 10);
   const salt = await bcrypt.genSalt(10);
   this.password = await bcrypt.hash(this.password, salt);
-  await sendEmail.sendCodeEmail({
-    to: this.email,
-    code,
-  });
-  this.code = hashedCode;
-  this.verificationCodeExpires = Date.now() + 10 * 60 * 1000;
+  // await sendEmail.sendCodeEmail({
+  //   to: this.email,
+  //   code,
+  // });
+  // this.code = hashedCode;
+  // this.verificationCodeExpires = Date.now() + 10 * 60 * 1000;
 });
 
 // Method to compare password
