@@ -67,7 +67,7 @@ exports.getAllPosts = async (req, res) => {
       .limit(limit)
       .populate({
         path: "userId",
-        select: "username avatar",
+        select: "username avatar ",
       })
       .populate({
         path: "likes",
@@ -143,6 +143,56 @@ exports.getByIdPosts = async (req, res) => {
 exports.getPostsByUser = async (req, res) => {
   try {
     const  userId = req.user._id;
+
+    const page = Math.max(parseInt(req.query.page) || 1, 1);
+    const limit = Math.min(parseInt(req.query.limit) || 10, 50);
+    const skip = (page - 1) * limit;
+
+    const posts = await Post.find({ userId })
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(limit)
+      .populate({
+        path: "userId",
+        select: "username avatar",
+      })
+      .populate({
+        path: "likes",
+        populate: {
+          path: "userId",
+          select: "username avatar",
+        },
+      })
+      .populate({
+        path: "comments",
+        populate: {
+          path: "userId",
+          select: "username avatar",
+        },
+      });
+
+    const totalPosts = await Post.countDocuments({ userId });
+
+    res.status(200).json({
+      success: true,
+      page,
+      limit,
+      totalPages: Math.ceil(totalPosts / limit),
+      totalPosts,
+      data: posts,
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
+
+
+exports.getPostsByUserId = async (req, res) => {
+  try {
+    const  userId = req.params.id;
 
     const page = Math.max(parseInt(req.query.page) || 1, 1);
     const limit = Math.min(parseInt(req.query.limit) || 10, 50);

@@ -3,7 +3,7 @@ const router = require("express").Router();
 const { auth } = require("../Middleware/auth");
 const { validation } = require("../Middleware/validation");
 const { myMulter, filetype } = require("../utils/multer");
-const { deletePost, createPost, getAllPosts, getPostsByUser, getByIdPosts } = require("./posts.service");
+const { deletePost, createPost, getAllPosts, getPostsByUser, getByIdPosts, getPostsByUserId } = require("./posts.service");
 const {
   createPostValidation,
   deletePostValidation,
@@ -22,5 +22,7 @@ router.get("/:id",   getByIdPosts);
 
 router.get("/",  getAllPosts);
 router.get('/own',auth(),getPostsByUser);
+router.get('/user/:id',getPostsByUserId);
+
 
 module.exports = router;
