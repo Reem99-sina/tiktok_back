@@ -103,6 +103,43 @@ exports.getAllPosts = async (req, res) => {
 };
 
 
+exports.getByIdPosts = async (req, res) => {
+  try {
+
+
+    const posts = await Post.findById(req.params.id)
+      .sort({ createdAt: -1 })
+      .populate({
+        path: "userId",
+        select: "username avatar",
+      })
+      .populate({
+        path: "likes",
+        populate: {
+          path: "userId",
+          select: "username avatar",
+        },
+      })
+      .populate({
+        path: "comments",
+        populate: {
+          path: "userId",
+          select: "username avatar",
+        },
+      });
+
+    res.status(200).json({
+      success: true,
+      data: posts,
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
+
 exports.getPostsByUser = async (req, res) => {
   try {
     const  userId = req.user._id;
