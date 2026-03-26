@@ -20,10 +20,9 @@ exports.register = async (req, res) => {
       email,
       password,
       avatar: req?.destination + "/" + req?.file?.filename,
-
     });
     await newUser.save();
-    
+
     res.status(201).json({ message: "User registered successfully" });
   } catch (err) {
     res.status(500).json({ message: "Server error", error: err.message });
@@ -42,7 +41,34 @@ exports.login = async (req, res) => {
     const isMatch = await user.comparePassword(password);
     if (!isMatch)
       return res.status(400).json({ message: "Invalid credentials" });
-   
+    if (!user.confirmed) {
+      const code = generateCode();
+      const hashedCode = await bcrypt.hash(code, 10);
+      await User.findOneAndUpdate(
+        { email },
+        {
+          code: hashedCode,
+          verificationCodeExpires: Date.now() + 10 * 60 * 1000, // 10 minutes
+        },
+        { new: true },
+      );
+      const message = `
+      <h3>Email Verification</h3>
+      <p>Your verification code is:</p>
+      <h2>${code}</h2>
+      <p>This code expires in 10 minutes.</p>
+    `;
+
+      await sendEmail.sendConfirmationEmail({
+        to: email,
+        name: `${user.firstName} ${user.lastName}`,
+        link: message,
+      });
+
+      return res
+        .status(400)
+        .json({ message: "Please confirm your email first" });
+    }
     // Generate JWT token
     const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET, {
       expiresIn: "1d",
@@ -57,7 +83,7 @@ exports.login = async (req, res) => {
 exports.getUser = async (req, res) => {
   try {
     // req.user is added by verifyToken middleware
-    console.log(req.user,'req.user')
+    console.log(req.user, "req.user");
     const user = await User.findById(req.user?._id)
       .populate("followers", "username avatar") // populate followers
       .populate("following", "username avatar"); // populate following
@@ -146,7 +172,6 @@ exports.confirmByCodeReq = async (req, res) => {
     return res.status(200).json({
       message: "Email confirmed successfully",
     });
-
   } catch (error) {
     return res.status(500).json({
       message: "Internal server error",
@@ -160,7 +185,7 @@ exports.sendVerifyEmail = async (req, res) => {
     const { email } = req.body;
 
     const user = await User.findOne({ email }).select("_id username");
-    
+
     if (!user) return res.status(404).json({ message: "User not foundr" });
 
     const code = generateCode();
@@ -181,13 +206,16 @@ exports.sendVerifyEmail = async (req, res) => {
     `;
 
     await sendEmail.sendCodeEmail({
-        to: email,
-        code,
-      });
- 
-    return res.status(200).json({ message: "Verification code resent successfully" });
+      to: email,
+      code,
+    });
+
+    return res
+      .status(200)
+      .json({ message: "Verification code resent successfully" });
   } catch (error) {
-    
     return res.status(500).json({ message: "Internal server error" });
   }
 };
+
+
